@@ -10,7 +10,6 @@
 #define TAM_TIPO     20
 #define ARQUIVO      "contatos.dat"
 
-/* Registro de um contato */
 typedef struct {
     char nome[TAM_NOME];
     char email[TAM_EMAIL];
@@ -18,9 +17,6 @@ typedef struct {
     char tipo[TAM_TIPO];
 } Contato;
 
-/* ---------- Funcoes utilitarias ---------- */
-
-/* Le uma linha completa do teclado de forma segura e remove o '\n' final */
 void lerString(char *destino, int tam, const char *rotulo) {
     int ch;
     size_t len;
@@ -34,12 +30,11 @@ void lerString(char *destino, int tam, const char *rotulo) {
     if (len > 0 && destino[len - 1] == '\n') {
         destino[len - 1] = '\0';
     } else {
-        /* Descarta o que sobrou na linha se o texto excedeu o buffer */
+
         while ((ch = getchar()) != '\n' && ch != EOF);
     }
 }
 
-/* Copia 'origem' para 'destino' convertendo tudo para minusculo */
 void paraMinusculo(const char *origem, char *destino, int tam) {
     int i;
     for (i = 0; origem[i] != '\0' && i < tam - 1; i++) {
@@ -48,7 +43,6 @@ void paraMinusculo(const char *origem, char *destino, int tam) {
     destino[i] = '\0';
 }
 
-/* Retorna 1 se a string contem apenas digitos (e nao esta vazia) */
 int apenasDigitos(const char *s) {
     int i;
     if (s[0] == '\0') return 0;
@@ -58,9 +52,6 @@ int apenasDigitos(const char *s) {
     return 1;
 }
 
-/* Le DDD e numero separadamente, valida e monta "(DD)NUMERO".
-   Se permiteVazio for 1 e o DDD ficar em branco, retorna 0 (manter atual).
-   Retorna 1 quando preenche 'destino' com um telefone valido. */
 int lerTelefone(char *destino, int tam, int permiteVazio) {
     char ddd[8], num[16];
     size_t ln;
@@ -68,14 +59,14 @@ int lerTelefone(char *destino, int tam, int permiteVazio) {
     while (1) {
         lerString(ddd, sizeof(ddd), "DDD (2 digitos): ");
         if (permiteVazio && ddd[0] == '\0') {
-            return 0;                 /* usuario optou por manter o atual */
+            return 0;
         }
         lerString(num, sizeof(num), "Numero (9 digitos): ");
         ln = strlen(num);
 
         if (apenasDigitos(ddd) && strlen(ddd) == 2 &&
             apenasDigitos(num) && ln == 9) {
-            /* Monta no formato (DD) 9XXXX-XXXX: 5 digitos, traco, 4 digitos */
+
             snprintf(destino, tam, "(%s) %.5s-%s", ddd, num, num + 5);
             return 1;
         }
@@ -83,7 +74,6 @@ int lerTelefone(char *destino, int tam, int permiteVazio) {
     }
 }
 
-/* Exibe os dados de um contato (indice mostrado iniciando em 1) */
 void exibirContato(const Contato *c, int indice) {
     printf("\n[%d]\n", indice + 1);
     printf("  Nome.....: %s\n", c->nome);
@@ -92,13 +82,10 @@ void exibirContato(const Contato *c, int indice) {
     printf("  Tipo.....: %s\n", c->tipo);
 }
 
-/* ---------- Persistencia em arquivo ---------- */
-
-/* Carrega os contatos do arquivo para o vetor. Retorna a quantidade lida. */
 int carregarContatos(Contato contatos[], int *total) {
     FILE *fp = fopen(ARQUIVO, "rb");
     if (fp == NULL) {
-        *total = 0;            /* arquivo ainda nao existe: comeca vazio */
+        *total = 0;
         return 0;
     }
     *total = (int) fread(contatos, sizeof(Contato), MAX_CONTATOS, fp);
@@ -106,7 +93,6 @@ int carregarContatos(Contato contatos[], int *total) {
     return *total;
 }
 
-/* Grava todos os contatos do vetor no arquivo */
 void salvarContatos(Contato contatos[], int total) {
     FILE *fp = fopen(ARQUIVO, "wb");
     if (fp == NULL) {
@@ -117,17 +103,13 @@ void salvarContatos(Contato contatos[], int total) {
     fclose(fp);
 }
 
-/* ---------- Busca ---------- */
-
-/* Retorna o indice do primeiro contato cujo nome contem 'nome'
-   (ignora maiusculas/minusculas). Retorna -1 se nao encontrar. */
 int buscarIndicePorNome(Contato contatos[], int total, const char *nome) {
     char alvo[TAM_NOME], atual[TAM_NOME];
     int i;
 
     paraMinusculo(nome, alvo, TAM_NOME);
     if (alvo[0] == '\0') {
-        return -1;            /* termo vazio nao casa com nada */
+        return -1;
     }
     for (i = 0; i < total; i++) {
         paraMinusculo(contatos[i].nome, atual, TAM_NOME);
@@ -138,9 +120,6 @@ int buscarIndicePorNome(Contato contatos[], int total, const char *nome) {
     return -1;
 }
 
-/* ---------- Funcionalidades ---------- */
-
-/* 1. Cadastrar */
 void cadastrarContato(Contato contatos[], int *total) {
     Contato novo;
 
@@ -162,7 +141,6 @@ void cadastrarContato(Contato contatos[], int *total) {
     printf("\nContato cadastrado com sucesso!\n");
 }
 
-/* 2. Alterar (Enter mantem o valor atual de cada campo) */
 void alterarContato(Contato contatos[], int total) {
     char termo[TAM_NOME];
     char bNome[TAM_NOME], bEmail[TAM_EMAIL];
@@ -203,7 +181,6 @@ void alterarContato(Contato contatos[], int total) {
     printf("\nContato alterado com sucesso!\n");
 }
 
-/* 3. Apagar (desloca os elementos seguintes para tras) */
 void apagarContato(Contato contatos[], int *total) {
     char termo[TAM_NOME];
     int idx, i;
@@ -231,7 +208,6 @@ void apagarContato(Contato contatos[], int *total) {
     printf("\nContato removido com sucesso!\n");
 }
 
-/* 4. Procurar (mostra todos os que contem o termo) */
 void procurarContato(Contato contatos[], int total) {
     char termo[TAM_NOME], termoLower[TAM_NOME], nomeLower[TAM_NOME];
     int i, encontrados = 0;
@@ -260,7 +236,6 @@ void procurarContato(Contato contatos[], int total) {
     }
 }
 
-/* 5. Listar todos */
 void listarContatos(Contato contatos[], int total) {
     int i;
 
@@ -273,8 +248,6 @@ void listarContatos(Contato contatos[], int total) {
         exibirContato(&contatos[i], i);
     }
 }
-
-/* ---------- Menu ---------- */
 
 int exibirMenu(void) {
     char linha[10];
@@ -292,19 +265,17 @@ int exibirMenu(void) {
     printf("Escolha uma opcao: ");
 
     if (fgets(linha, sizeof(linha), stdin) == NULL) {
-        return 6;             /* fim de entrada: encerra com seguranca */
+        return 6;
     }
     return atoi(linha);
 }
-
-/* ---------- Programa principal ---------- */
 
 int main(void) {
     Contato contatos[MAX_CONTATOS];
     int total = 0;
     int opcao;
 
-    carregarContatos(contatos, &total);   /* carrega o arquivo ao iniciar */
+    carregarContatos(contatos, &total);
     printf("Sistema iniciado. %d contato(s) carregado(s).\n", total);
 
     do {
@@ -313,7 +284,7 @@ int main(void) {
         switch (opcao) {
             case 1:
                 cadastrarContato(contatos, &total);
-                salvarContatos(contatos, total);   /* salva apos alterar */
+                salvarContatos(contatos, total);
                 break;
             case 2:
                 alterarContato(contatos, total);
@@ -330,7 +301,7 @@ int main(void) {
                 listarContatos(contatos, total);
                 break;
             case 6:
-                salvarContatos(contatos, total);   /* grava ao encerrar */
+                salvarContatos(contatos, total);
                 printf("\nDados salvos. Encerrando o programa...\n");
                 break;
             default:
